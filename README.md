@@ -1,6 +1,8 @@
-# Visualizador 3D de Caixas e Itens
+# PackViz 3D
 
-Aplicacao em HTML/CSS/JS (Three.js) que renderiza uma caixa e seus itens posicionados em 3D a partir de um JSON.
+**Visualize, simule e otimize seu empacotamento em 3D**
+
+Aplicação web interativa em HTML/CSS/JS (Three.js) que renderiza caixas e itens posicionados em 3D a partir de um JSON, com física, análise de espaço e detecção de colisões.
 
 ## Pre-requisitos
 - Servir os arquivos via HTTP (ex.: `npx serve`, `http-server .`)

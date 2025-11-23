@@ -1088,7 +1088,7 @@ function exportSceneScreenshot() {
     // Create download link
     const link = document.createElement("a");
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
-    link.download = `visualizador-3d-${timestamp}.png`;
+    link.download = `packviz-3d-${timestamp}.png`;
     link.href = dataUrl;
     link.click();
 

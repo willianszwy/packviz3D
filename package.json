@@ -1,0 +1,20 @@
+{
+    "name": "packviz-3d",
+    "version": "1.5.0",
+    "description": "Visualize, simule e otimize seu empacotamento em 3D",
+    "main": "index.html",
+    "scripts": {
+        "dev": "npx serve",
+        "start": "npx serve"
+    },
+    "keywords": [
+        "3d",
+        "visualization",
+        "packing",
+        "three.js",
+        "physics",
+        "logistics"
+    ],
+    "author": "",
+    "license": "MIT"
+}
