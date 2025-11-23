@@ -1,12 +1,13 @@
 ﻿<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Visualizador 3D de Caixas e Itens</title>
-    <link rel="stylesheet" href="styles.css" />
-    <script type="importmap">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visualizador 3D de Caixas e Itens</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script type="importmap">
       {
         "imports": {
           "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
@@ -14,51 +15,59 @@
         }
       }
     </script>
-  </head>
-  <body>
-    <header class="app-header">
-      <h1>Visualizador 3D de Caixas e Itens</h1>
-      <p>Carregue o JSON, valide os dados e explore a cena para verificar itens fora da caixa.</p>
-    </header>
-    <main class="app-layout">
-      <section class="sidebar">
-        <form id="json-form" class="form-card">
-          <label for="json-input">JSON de entrada</label>
-          <textarea id="json-input" rows="12" spellcheck="false" placeholder="Cole aqui o JSON da caixa e itens..."></textarea>
-          <div class="form-actions">
-            <button type="submit" class="btn primary">Carregar</button>
-            <div class="example-dropdown">
-              <button type="button" id="example-trigger" class="btn subtle">
-                Exemplos ▾
-              </button>
-              <div id="example-menu" class="example-menu" hidden></div>
-            </div>
+</head>
+
+<body>
+  <header class="app-header">
+    <h1>Visualizador 3D de Caixas e Itens</h1>
+    <p>Carregue o JSON, valide os dados e explore a cena para verificar itens fora da caixa.</p>
+  </header>
+  <main class="app-layout">
+    <section class="sidebar">
+      <form id="json-form" class="form-card">
+        <label for="json-input">JSON de entrada</label>
+        <textarea id="json-input" rows="12" spellcheck="false"
+          placeholder="Cole aqui o JSON da caixa e itens..."></textarea>
+        <div class="form-actions">
+          <button type="submit" class="btn primary">Carregar</button>
+          <div class="example-dropdown">
+            <button type="button" id="example-trigger" class="btn subtle">
+              Exemplos ▾
+            </button>
+            <div id="example-menu" class="example-menu" hidden></div>
           </div>
-        </form>
-        <div id="status-message" class="status-message"></div>
-        <section class="item-panel panel">
-          <h2>Itens carregados</h2>
-          <div id="items-list" class="items-list empty">
-            Nenhum item carregado.
-          </div>
-        </section>
-        <section class="instructions panel">
-          <h2>Controles da cena</h2>
-          <ul>
-            <li>Arraste com o botao esquerdo para orbitar.</li>
-            <li>Role o mouse para zoom.</li>
-            <li>Arraste com o botao direito para pan.</li>
-          </ul>
-        </section>
+        </div>
+      </form>
+      <div id="status-message" class="status-message"></div>
+      <section class="item-panel panel">
+        <h2>Itens carregados</h2>
+        <div id="items-list" class="items-list empty">
+          Nenhum item carregado.
+        </div>
       </section>
-      <section class="viewer-area">
-        <div id="summary-bar" class="summary-bar empty"></div>
-        <section class="viewer">
-          <button type="button" id="reset-view" class="reset-view-btn">Resetar visualização</button>
-          <div id="viewer-container" class="viewer-container"></div>
-        </section>
+      <section class="instructions panel">
+        <h2>Controles da cena</h2>
+        <ul>
+          <li>Arraste com o botao esquerdo para orbitar.</li>
+          <li>Role o mouse para zoom.</li>
+          <li>Arraste com o botao direito para pan.</li>
+        </ul>
       </section>
-    </main>
-    <script type="module" src="app.js"></script>
-  </body>
+    </section>
+    <section class="viewer-area">
+      <div id="summary-bar" class="summary-bar empty"></div>
+      <section class="viewer">
+        <div class="viewer-controls">
+          <button type="button" id="reset-view" class="viewer-btn">↻ Resetar</button>
+          <button type="button" id="copy-url" class="viewer-btn">🔗 Copiar URL</button>
+          <button type="button" id="export-screenshot" class="viewer-btn">📷 Screenshot</button>
+        </div>
+        <div id="viewer-container" class="viewer-container"></div>
+      </section>
+    </section>
+  </main>
+  <div id="toast-container" class="toast-container"></div>
+  <script type="module" src="app.js"></script>
+</body>
+
 </html>

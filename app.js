@@ -11,6 +11,9 @@ const exampleTrigger = document.getElementById("example-trigger");
 const exampleMenu = document.getElementById("example-menu");
 const exampleDropdown = document.querySelector(".example-dropdown");
 const resetViewBtn = document.getElementById("reset-view");
+const copyUrlBtn = document.getElementById("copy-url");
+const exportScreenshotBtn = document.getElementById("export-screenshot");
+const toastContainer = document.getElementById("toast-container");
 const sidebar = document.querySelector(".sidebar");
 const viewerBaseHeight = viewerContainer ? Math.max(viewerContainer.clientHeight || 0, 560) : 560;
 
@@ -132,6 +135,14 @@ document.addEventListener("click", (event) => {
 
 resetViewBtn?.addEventListener("click", () => {
   resetCameraView();
+});
+
+copyUrlBtn?.addEventListener("click", () => {
+  copyShareableUrl();
+});
+
+exportScreenshotBtn?.addEventListener("click", () => {
+  exportSceneScreenshot();
 });
 
 if (!loadedFromQuery) {
@@ -839,4 +850,86 @@ function updateSummary(box, items) {
     <span>Peso total: <strong>${weightTotal} kg</strong></span>
     <span>Capacidade: <strong>${box.maxWeight.toFixed(1)} kg</strong></span>
   `;
+}
+
+function copyShareableUrl() {
+  try {
+    const currentJson = textarea.value.trim();
+    if (!currentJson) {
+      showToast("Nenhum JSON carregado para compartilhar", "error");
+      return;
+    }
+
+    // Validate JSON before encoding
+    JSON.parse(currentJson);
+
+    // Encode JSON to Base64
+    const encoded = btoa(currentJson);
+    const baseUrl = window.location.origin + window.location.pathname;
+    const shareUrl = `${baseUrl}?payload=${encodeURIComponent(encoded)}`;
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      showToast("✓ URL copiada para a área de transferência!", "success");
+    }).catch(() => {
+      // Fallback for older browsers
+      const tempInput = document.createElement("input");
+      tempInput.value = shareUrl;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy");
+      document.body.removeChild(tempInput);
+      showToast("✓ URL copiada para a área de transferência!", "success");
+    });
+  } catch (error) {
+    showToast("Erro ao gerar URL: " + error.message, "error");
+  }
+}
+
+function exportSceneScreenshot() {
+  try {
+    if (!itemMeshes.length) {
+      showToast("Carregue uma cena antes de exportar", "error");
+      return;
+    }
+
+    // Render at higher resolution for better quality
+    const originalSize = renderer.getSize(new THREE.Vector2());
+    const scale = 2; // 2x resolution
+    renderer.setSize(originalSize.x * scale, originalSize.y * scale);
+    renderer.render(scene, camera);
+
+    // Get image data
+    const dataUrl = renderer.domElement.toDataURL("image/png");
+
+    // Restore original size
+    renderer.setSize(originalSize.x, originalSize.y);
+
+    // Create download link
+    const link = document.createElement("a");
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5);
+    link.download = `visualizador-3d-${timestamp}.png`;
+    link.href = dataUrl;
+    link.click();
+
+    showToast("✓ Screenshot exportada com sucesso!", "success");
+  } catch (error) {
+    showToast("Erro ao exportar screenshot: " + error.message, "error");
+  }
+}
+
+function showToast(message, type = "") {
+  const toast = document.createElement("div");
+  toast.className = `toast${type ? " " + type : ""}`;
+  toast.textContent = message;
+
+  toastContainer.appendChild(toast);
+
+  // Auto remove after 3 seconds
+  setTimeout(() => {
+    toast.style.animation = "slideIn 0.3s ease reverse";
+    setTimeout(() => {
+      toastContainer.removeChild(toast);
+    }, 300);
+  }, 3000);
 }
