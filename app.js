@@ -61,6 +61,8 @@ scene.background = new THREE.Color(0x050915);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 viewerContainer.appendChild(renderer.domElement);
 
 // resize handled via window events + manual calls to avoid resize loops
@@ -80,6 +82,16 @@ scene.add(hemisphereLight);
 
 const mainLight = new THREE.DirectionalLight(0xffffff, 1.1);
 mainLight.position.set(140, 220, 160);
+mainLight.castShadow = true;
+mainLight.shadow.mapSize.width = 2048;
+mainLight.shadow.mapSize.height = 2048;
+mainLight.shadow.camera.near = 0.5;
+mainLight.shadow.camera.far = 500;
+mainLight.shadow.camera.left = -200;
+mainLight.shadow.camera.right = 200;
+mainLight.shadow.camera.top = 200;
+mainLight.shadow.camera.bottom = -200;
+mainLight.shadow.bias = -0.0001;
 scene.add(mainLight);
 
 const rimLight = new THREE.DirectionalLight(0x93c5fd, 0.6);
@@ -334,21 +346,26 @@ function buildBox(box) {
   const bottom = new THREE.Mesh(new THREE.PlaneGeometry(box.width, box.depth), baseMaterial.clone());
   bottom.rotation.x = -Math.PI / 2;
   bottom.position.set(box.position.x, box.position.y - box.height / 2, box.position.z);
+  bottom.receiveShadow = true;
 
   const back = new THREE.Mesh(new THREE.PlaneGeometry(box.width, box.height), baseMaterial.clone());
   back.position.set(box.position.x, box.position.y, box.position.z - box.depth / 2);
+  back.receiveShadow = true;
 
   const front = back.clone();
   front.position.set(box.position.x, box.position.y, box.position.z + box.depth / 2);
   front.rotateY(Math.PI);
+  front.receiveShadow = true;
 
   const left = new THREE.Mesh(new THREE.PlaneGeometry(box.depth, box.height), baseMaterial.clone());
   left.rotation.y = Math.PI / 2;
   left.position.set(box.position.x - box.width / 2, box.position.y, box.position.z);
+  left.receiveShadow = true;
 
   const right = left.clone();
   right.position.set(box.position.x + box.width / 2, box.position.y, box.position.z);
   right.rotation.y = -Math.PI / 2;
+  right.receiveShadow = true;
 
   [bottom, back, front, left, right].forEach((wall) => group.add(wall));
 
