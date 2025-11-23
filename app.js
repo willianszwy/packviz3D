@@ -1197,23 +1197,24 @@ function updatePhysics(deltaTime) {
       if (!collision) {
         physItem.mesh.position.y = newY;
       }
+    } // Added missing closing brace for the else block
 
-      // Update item data position for collision detection
-      physItem.data.position.y = physItem.mesh.position.y;
+    // Update item data position for collision detection
+    physItem.data.position.y = physItem.mesh.position.y;
 
-      // Update outline and tag positions if they exist
-      if (physItem.mesh.userData.outline) {
-        physItem.mesh.userData.outline.position.copy(physItem.mesh.position);
-      }
-      if (physItem.mesh.userData.outsideTag) {
-        const tagY = physItem.mesh.position.y + physItem.data.height / 2 + 8;
-        physItem.mesh.userData.outsideTag.position.set(
-          physItem.mesh.position.x,
-          tagY,
-          physItem.mesh.position.z
-        );
-      }
-    });
+    // Update outline and tag positions if they exist
+    if (physItem.mesh.userData.outline) {
+      physItem.mesh.userData.outline.position.copy(physItem.mesh.position);
+    }
+    if (physItem.mesh.userData.outsideTag) {
+      const tagY = physItem.mesh.position.y + physItem.data.height / 2 + 8;
+      physItem.mesh.userData.outsideTag.position.set(
+        physItem.mesh.position.x,
+        tagY,
+        physItem.mesh.position.z
+      );
+    }
+  });
 }
 
 function checkItemBelow(falling, below) {
