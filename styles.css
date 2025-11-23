@@ -471,6 +471,19 @@ button.primary:hover,
   transform: translateX(2px);
 }
 
+.item-row.selected {
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0f7ff 100%);
+  border-color: var(--accent);
+  border-width: 2px;
+  box-shadow: 0 4px 12px rgba(47, 128, 237, 0.3);
+  transform: translateX(4px);
+}
+
+.item-row.selected .color-tag {
+  box-shadow: 0 0 8px rgba(47, 128, 237, 0.5);
+  transform: scale(1.1);
+}
+
 .item-row.outside.hovered {
   background: #ffe5e5;
   border-color: var(--danger);

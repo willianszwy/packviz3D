@@ -747,6 +747,7 @@ function onMouseClick(event) {
     if (selectedItem === clickedMesh) {
       selectedItem = null;
       updateItemHighlight(clickedMesh, false, false);
+      removeSelectedFromList(); // Remove selected class from all items
     } else {
       // Deselect previous
       if (selectedItem) {
@@ -754,6 +755,7 @@ function onMouseClick(event) {
       }
       selectedItem = clickedMesh;
       updateItemHighlight(clickedMesh, true, false);
+      highlightSelectedInList(itemData.id); // Add selected class to clicked item
     }
 
     // Scroll to item in list
@@ -763,6 +765,7 @@ function onMouseClick(event) {
     if (selectedItem) {
       updateItemHighlight(selectedItem, false, selectedItem === hoveredItem);
       selectedItem = null;
+      removeSelectedFromList();
     }
   }
 }
@@ -853,6 +856,26 @@ function highlightItemInList(itemId, highlight) {
         row.classList.remove('hovered');
       }
     }
+  });
+}
+
+function highlightSelectedInList(itemId) {
+  // Remove selected from all items first
+  removeSelectedFromList();
+
+  // Add selected to the clicked item
+  const itemRows = itemsList.querySelectorAll('.item-row');
+  itemRows.forEach(row => {
+    if (row.dataset.itemId === itemId) {
+      row.classList.add('selected');
+    }
+  });
+}
+
+function removeSelectedFromList() {
+  const itemRows = itemsList.querySelectorAll('.item-row');
+  itemRows.forEach(row => {
+    row.classList.remove('selected');
   });
 }
 
