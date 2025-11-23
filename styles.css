@@ -334,6 +334,43 @@ button.primary:hover,
   font-size: 1rem;
 }
 
+.stats-panel {
+  font-size: 0.9rem;
+}
+
+.stats-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #1f1f1f;
+}
+
+.stat-highlight {
+  color: var(--accent);
+  font-size: 1.05em;
+}
+
 .instructions ul {
   margin: 0;
   padding-left: 16px;

@@ -14,6 +14,8 @@ const resetViewBtn = document.getElementById("reset-view");
 const copyUrlBtn = document.getElementById("copy-url");
 const exportScreenshotBtn = document.getElementById("export-screenshot");
 const toastContainer = document.getElementById("toast-container");
+const statsPanel = document.getElementById("stats-panel");
+const statsContent = document.getElementById("stats-content");
 const sidebar = document.querySelector(".sidebar");
 const viewerBaseHeight = viewerContainer ? Math.max(viewerContainer.clientHeight || 0, 560) : 560;
 
@@ -841,15 +843,87 @@ function updateSummary(box, items) {
     return;
   }
   summaryBar.classList.remove("empty");
+
   const weightTotal = items.reduce((sum, item) => sum + item.weight, 0).toFixed(1);
   const dims = `${box.width}×${box.depth}×${box.height} cm`;
   const namePart = box.name ? `${box.name} • ` : "";
+
+  // Calculate space utilization
+  const spaceAnalysis = calculateSpaceUtilization(box, items);
+  const utilizationPercent = spaceAnalysis.utilizationPercent.toFixed(1);
+  const efficiencyClass = spaceAnalysis.efficiency;
+  const efficiencyEmoji = efficiencyClass === 'high' ? '🟢' : efficiencyClass === 'medium' ? '🟡' : '🔴';
+
   summaryBar.innerHTML = `
     <span>Caixa: <strong>${namePart}${dims}</strong></span>
     <span>Itens: <strong>${items.length}</strong></span>
-    <span>Peso total: <strong>${weightTotal} kg</strong></span>
-    <span>Capacidade: <strong>${box.maxWeight.toFixed(1)} kg</strong></span>
+    <span>Peso: <strong>${weightTotal} / ${box.maxWeight.toFixed(1)} kg</strong></span>
+    <span>Volume: <strong>${utilizationPercent}%</strong> ${efficiencyEmoji}</span>
   `;
+
+  // Update stats panel
+  updateStatsPanel(box, items, spaceAnalysis);
+}
+
+function updateStatsPanel(box, items, spaceAnalysis) {
+  if (!statsPanel || !statsContent) return;
+
+  statsPanel.hidden = false;
+
+  const weightTotal = items.reduce((sum, item) => sum + item.weight, 0);
+  const weightPercent = ((weightTotal / box.maxWeight) * 100).toFixed(1);
+
+  statsContent.innerHTML = `
+    <div class="stat-row">
+      <span class="stat-label">Volume da caixa:</span>
+      <span class="stat-value">${spaceAnalysis.boxVolume.toLocaleString()} cm³</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Volume ocupado:</span>
+      <span class="stat-value">${spaceAnalysis.itemsVolume.toLocaleString()} cm³</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Volume livre:</span>
+      <span class="stat-value">${spaceAnalysis.unusedVolume.toLocaleString()} cm³</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Aproveitamento:</span>
+      <span class="stat-value stat-highlight">${spaceAnalysis.utilizationPercent.toFixed(1)}%</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Peso utilizado:</span>
+      <span class="stat-value">${weightPercent}%</span>
+    </div>
+  `;
+}
+
+function calculateSpaceUtilization(box, items) {
+  // Calculate box volume
+  const boxVolume = box.width * box.height * box.depth;
+
+  // Calculate total items volume
+  const itemsVolume = items.reduce((sum, item) => {
+    return sum + (item.width * item.height * item.depth);
+  }, 0);
+
+  // Calculate utilization percentage
+  const utilizationPercent = (itemsVolume / boxVolume) * 100;
+
+  // Determine efficiency level
+  let efficiency = 'low';
+  if (utilizationPercent >= 70) {
+    efficiency = 'high';
+  } else if (utilizationPercent >= 40) {
+    efficiency = 'medium';
+  }
+
+  return {
+    boxVolume,
+    itemsVolume,
+    utilizationPercent,
+    efficiency,
+    unusedVolume: boxVolume - itemsVolume
+  };
 }
 
 function copyShareableUrl() {
