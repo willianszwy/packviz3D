@@ -384,6 +384,26 @@ button.primary:hover,
   line-height: 1.5;
 }
 
+.instructions h3 {
+  margin: 16px 0 8px 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f1f1f;
+}
+
+.instructions h3:first-of-type {
+  margin-top: 8px;
+}
+
+.instructions li {
+  margin-bottom: 6px;
+}
+
+.instructions strong {
+  color: #1f1f1f;
+  font-weight: 600;
+}
+
 .items-list {
   display: flex;
   flex-direction: column;
