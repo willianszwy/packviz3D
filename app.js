@@ -273,8 +273,58 @@ function decorateItems(box, items) {
   return items.map((item, index) => {
     const color = palette[index % palette.length];
     const outside = isOutsideBox(box, item);
-    return { ...item, color, outside };
+    const collisions = detectCollisions(item, items, index);
+    const hasCollision = collisions.length > 0;
+    return { ...item, color, outside, hasCollision, collisions };
   });
+}
+
+function detectCollisions(item, allItems, currentIndex) {
+  const collisions = [];
+
+  for (let i = 0; i < allItems.length; i++) {
+    if (i === currentIndex) continue;
+
+    const other = allItems[i];
+    if (checkAABBCollision(item, other)) {
+      collisions.push(other.id || `item-${i + 1}`);
+    }
+  }
+
+  return collisions;
+}
+
+function checkAABBCollision(item1, item2) {
+  // Calculate bounds for item1
+  const min1 = {
+    x: item1.position.x - item1.width / 2,
+    y: item1.position.y - item1.height / 2,
+    z: item1.position.z - item1.depth / 2
+  };
+  const max1 = {
+    x: item1.position.x + item1.width / 2,
+    y: item1.position.y + item1.height / 2,
+    z: item1.position.z + item1.depth / 2
+  };
+
+  // Calculate bounds for item2
+  const min2 = {
+    x: item2.position.x - item2.width / 2,
+    y: item2.position.y - item2.height / 2,
+    z: item2.position.z - item2.depth / 2
+  };
+  const max2 = {
+    x: item2.position.x + item2.width / 2,
+    y: item2.position.y + item2.height / 2,
+    z: item2.position.z + item2.depth / 2
+  };
+
+  // Check for overlap on all axes
+  return (
+    min1.x < max2.x && max1.x > min2.x &&
+    min1.y < max2.y && max1.y > min2.y &&
+    min1.z < max2.z && max1.z > min2.z
+  );
 }
 
 function isOutsideBox(box, item) {
@@ -428,14 +478,27 @@ function createDimensionLine(start, end, label) {
 
 function buildItemMesh(item) {
   const geometry = new THREE.BoxGeometry(item.width, item.height, item.depth);
+
+  // Determine emissive color based on state
+  let emissiveColor = new THREE.Color(0x000000);
+  let emissiveIntensity = 0;
+
+  if (item.outside) {
+    emissiveColor = new THREE.Color(0xb91c1c); // Red for outside
+    emissiveIntensity = 0.45;
+  } else if (item.hasCollision) {
+    emissiveColor = new THREE.Color(0xf97316); // Orange for collision
+    emissiveIntensity = 0.35;
+  }
+
   const material = new THREE.MeshStandardMaterial({
     color: new THREE.Color(item.color),
     roughness: 0.45,
     metalness: 0.05,
-    transparent: item.outside,
-    opacity: item.outside ? 0.75 : 1,
-    emissive: item.outside ? new THREE.Color(0xb91c1c) : new THREE.Color(0x000000),
-    emissiveIntensity: item.outside ? 0.45 : 0
+    transparent: item.outside || item.hasCollision,
+    opacity: item.outside || item.hasCollision ? 0.75 : 1,
+    emissive: emissiveColor,
+    emissiveIntensity: emissiveIntensity
   });
 
   const mesh = new THREE.Mesh(geometry, material);
@@ -520,7 +583,10 @@ function updateItemList(items) {
 
   items.forEach((item) => {
     const row = document.createElement("div");
-    row.className = `item-row${item.outside ? " outside" : ""}`;
+    let rowClass = "item-row";
+    if (item.outside) rowClass += " outside";
+    if (item.hasCollision) rowClass += " collision";
+    row.className = rowClass;
     row.dataset.itemId = item.id; // For interaction tracking
 
     const colorTag = document.createElement("span");
@@ -536,7 +602,16 @@ function updateItemList(items) {
     const meta = document.createElement("div");
     meta.className = "item-meta";
     const dims = `${item.width}x${item.height}x${item.depth} cm`;
-    meta.textContent = `${dims} | ${item.weight} kg${item.outside ? " | Fora da caixa" : ""}`;
+    let metaText = `${dims} | ${item.weight} kg`;
+
+    if (item.outside) {
+      metaText += " | Fora da caixa";
+    }
+    if (item.hasCollision) {
+      metaText += ` | ⚠️ Colisão (${item.collisions.length})`;
+    }
+
+    meta.textContent = metaText;
 
     details.appendChild(title);
     details.appendChild(meta);

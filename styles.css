@@ -429,6 +429,15 @@ button.primary:hover,
   color: var(--danger);
 }
 
+.item-row.collision {
+  border-color: #f97316;
+  background: #fff7ed;
+}
+
+.item-row.collision .item-meta {
+  color: #c2410c;
+}
+
 .item-row.hovered {
   background: #f0f7ff;
   border-color: var(--accent);
