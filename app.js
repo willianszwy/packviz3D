@@ -86,6 +86,13 @@ scene.add(gridHelper);
 
 const cleanupCallbacks = [];
 
+// Raycaster for item interaction
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let hoveredItem = null;
+let selectedItem = null;
+let itemMeshes = [];
+
 populateExampleMenu();
 
 const loadedFromQuery = loadPayloadFromQuery();
@@ -93,8 +100,13 @@ const loadedFromQuery = loadPayloadFromQuery();
 window.addEventListener("resize", autoResize);
 autoResize();
 
+// Mouse interaction events
+viewerContainer.addEventListener("mousemove", onMouseMove);
+viewerContainer.addEventListener("click", onMouseClick);
+
 renderer.setAnimationLoop(() => {
   controls.update();
+  updateInteractions();
   renderer.render(scene, camera);
 });
 
@@ -264,9 +276,14 @@ function renderScene(box, items) {
   scene.add(dimensions);
   cleanupCallbacks.push(() => disposeObject(scene, dimensions));
 
+  // Reset item meshes array
+  itemMeshes = [];
+
   items.forEach((item) => {
     const mesh = buildItemMesh(item);
+    mesh.userData.itemData = item; // Store item data for interaction
     scene.add(mesh);
+    itemMeshes.push(mesh); // Track for raycasting
     cleanupCallbacks.push(() => disposeObject(scene, mesh));
 
     if (item.outside) {
@@ -474,6 +491,7 @@ function updateItemList(items) {
   items.forEach((item) => {
     const row = document.createElement("div");
     row.className = `item-row${item.outside ? " outside" : ""}`;
+    row.dataset.itemId = item.id; // For interaction tracking
 
     const colorTag = document.createElement("span");
     colorTag.className = "color-tag";
@@ -586,9 +604,140 @@ function resetCameraView() {
   }
 }
 
+function onMouseMove(event) {
+  const rect = viewerContainer.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+}
+
+function onMouseClick(event) {
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(itemMeshes);
+
+  if (intersects.length > 0) {
+    const clickedMesh = intersects[0].object;
+    const itemData = clickedMesh.userData.itemData;
+
+    // Toggle selection
+    if (selectedItem === clickedMesh) {
+      selectedItem = null;
+      updateItemHighlight(clickedMesh, false, false);
+    } else {
+      // Deselect previous
+      if (selectedItem) {
+        updateItemHighlight(selectedItem, false, selectedItem === hoveredItem);
+      }
+      selectedItem = clickedMesh;
+      updateItemHighlight(clickedMesh, true, false);
+    }
+
+    // Scroll to item in list
+    scrollToItemInList(itemData.id);
+  } else {
+    // Click on empty space - deselect
+    if (selectedItem) {
+      updateItemHighlight(selectedItem, false, selectedItem === hoveredItem);
+      selectedItem = null;
+    }
+  }
+}
+
+function updateInteractions() {
+  if (!itemMeshes.length) return;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(itemMeshes);
+
+  if (intersects.length > 0) {
+    const newHovered = intersects[0].object;
+
+    if (hoveredItem !== newHovered) {
+      // Remove hover from previous
+      if (hoveredItem && hoveredItem !== selectedItem) {
+        updateItemHighlight(hoveredItem, false, false);
+      }
+
+      // Add hover to new
+      hoveredItem = newHovered;
+      if (hoveredItem !== selectedItem) {
+        updateItemHighlight(hoveredItem, false, true);
+      }
+
+      // Update cursor
+      viewerContainer.style.cursor = 'pointer';
+
+      // Highlight in list
+      highlightItemInList(hoveredItem.userData.itemData.id, true);
+    }
+  } else {
+    // No hover
+    if (hoveredItem && hoveredItem !== selectedItem) {
+      updateItemHighlight(hoveredItem, false, false);
+      highlightItemInList(hoveredItem.userData.itemData.id, false);
+    }
+    hoveredItem = null;
+    viewerContainer.style.cursor = 'default';
+  }
+}
+
+function updateItemHighlight(mesh, isSelected, isHovered) {
+  if (!mesh || !mesh.material) return;
+
+  const itemData = mesh.userData.itemData;
+  const baseColor = new THREE.Color(itemData.color);
+
+  if (isSelected) {
+    // Selected: bright emissive glow
+    mesh.material.emissive = new THREE.Color(0xffffff);
+    mesh.material.emissiveIntensity = 0.4;
+    mesh.scale.set(1.05, 1.05, 1.05);
+  } else if (isHovered) {
+    // Hovered: subtle glow
+    mesh.material.emissive = baseColor.clone().multiplyScalar(0.5);
+    mesh.material.emissiveIntensity = 0.3;
+    mesh.scale.set(1.02, 1.02, 1.02);
+  } else {
+    // Normal state
+    if (itemData.outside) {
+      mesh.material.emissive = new THREE.Color(0xb91c1c);
+      mesh.material.emissiveIntensity = 0.45;
+    } else {
+      mesh.material.emissive = new THREE.Color(0x000000);
+      mesh.material.emissiveIntensity = 0;
+    }
+    mesh.scale.set(1, 1, 1);
+  }
+}
+
+function scrollToItemInList(itemId) {
+  const itemRows = itemsList.querySelectorAll('.item-row');
+  itemRows.forEach(row => {
+    if (row.dataset.itemId === itemId) {
+      row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  });
+}
+
+function highlightItemInList(itemId, highlight) {
+  const itemRows = itemsList.querySelectorAll('.item-row');
+  itemRows.forEach(row => {
+    if (row.dataset.itemId === itemId) {
+      if (highlight) {
+        row.classList.add('hovered');
+      } else {
+        row.classList.remove('hovered');
+      }
+    }
+  });
+}
+
 function resetScene() {
   cleanupCallbacks.splice(0).forEach((dispose) => dispose());
   updateSummary(null, []);
+  // Reset interaction state
+  hoveredItem = null;
+  selectedItem = null;
+  itemMeshes = [];
 }
 
 function disposeObject(parent, object) {

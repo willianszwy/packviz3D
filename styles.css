@@ -304,6 +304,8 @@ button.primary:hover,
   border-radius: 4px;
   background: var(--surface);
   align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .color-tag {
@@ -329,6 +331,19 @@ button.primary:hover,
 
 .item-row.outside .item-meta {
   color: var(--danger);
+}
+
+.item-row.hovered {
+  background: #f0f7ff;
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(47, 128, 237, 0.15);
+  transform: translateX(2px);
+}
+
+.item-row.outside.hovered {
+  background: #ffe5e5;
+  border-color: var(--danger);
+  box-shadow: 0 2px 8px rgba(192, 57, 43, 0.15);
 }
 
 @media (max-width: 960px) {
