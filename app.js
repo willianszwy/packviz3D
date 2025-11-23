@@ -380,9 +380,15 @@ function renderScene(box, items) {
       scene.add(outline);
       cleanupCallbacks.push(() => disposeObject(scene, outline));
 
+      // Store reference to outline in mesh userData
+      mesh.userData.outline = outline;
+
       const outsideTag = buildOutsideTag(item);
       scene.add(outsideTag);
       cleanupCallbacks.push(() => disposeObject(scene, outsideTag));
+
+      // Store reference to tag in mesh userData
+      mesh.userData.outsideTag = outsideTag;
     }
   });
 }
@@ -1191,11 +1197,23 @@ function updatePhysics(deltaTime) {
       if (!collision) {
         physItem.mesh.position.y = newY;
       }
-    }
 
-    // Update item data position for collision detection
-    physItem.data.position.y = physItem.mesh.position.y;
-  });
+      // Update item data position for collision detection
+      physItem.data.position.y = physItem.mesh.position.y;
+
+      // Update outline and tag positions if they exist
+      if (physItem.mesh.userData.outline) {
+        physItem.mesh.userData.outline.position.copy(physItem.mesh.position);
+      }
+      if (physItem.mesh.userData.outsideTag) {
+        const tagY = physItem.mesh.position.y + physItem.data.height / 2 + 8;
+        physItem.mesh.userData.outsideTag.position.set(
+          physItem.mesh.position.x,
+          tagY,
+          physItem.mesh.position.z
+        );
+      }
+    });
 }
 
 function checkItemBelow(falling, below) {
