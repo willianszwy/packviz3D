@@ -11,6 +11,7 @@ const exampleTrigger = document.getElementById("example-trigger");
 const exampleMenu = document.getElementById("example-menu");
 const exampleDropdown = document.querySelector(".example-dropdown");
 const resetViewBtn = document.getElementById("reset-view");
+const toggleGravityBtn = document.getElementById("toggle-gravity");
 const copyUrlBtn = document.getElementById("copy-url");
 const exportScreenshotBtn = document.getElementById("export-screenshot");
 const toastContainer = document.getElementById("toast-container");
@@ -18,6 +19,12 @@ const statsPanel = document.getElementById("stats-panel");
 const statsContent = document.getElementById("stats-content");
 const sidebar = document.querySelector(".sidebar");
 const viewerBaseHeight = viewerContainer ? Math.max(viewerContainer.clientHeight || 0, 560) : 560;
+
+// Physics simulation state
+let gravityEnabled = false;
+let physicsItems = [];
+const GRAVITY = -98; // cm/s² (Earth gravity scaled)
+const DAMPING = 0.8; // Bounce damping factor
 
 const palette = [
   "#0ea5e9",
@@ -121,12 +128,6 @@ autoResize();
 viewerContainer.addEventListener("mousemove", onMouseMove);
 viewerContainer.addEventListener("click", onMouseClick);
 
-renderer.setAnimationLoop(() => {
-  controls.update();
-  updateInteractions();
-  renderer.render(scene, camera);
-});
-
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   handleJsonLoad();
@@ -149,6 +150,19 @@ document.addEventListener("click", (event) => {
 
 resetViewBtn?.addEventListener("click", () => {
   resetCameraView();
+});
+
+toggleGravityBtn?.addEventListener("click", () => {
+  gravityEnabled = !gravityEnabled;
+  toggleGravityBtn.dataset.active = gravityEnabled.toString();
+
+  if (gravityEnabled) {
+    initializePhysics();
+    showToast("🌍 Gravidade ativada - itens cairão!", "success");
+  } else {
+    stopPhysics();
+    showToast("Gravidade desativada", "");
+  }
 });
 
 copyUrlBtn?.addEventListener("click", () => {
@@ -1099,3 +1113,122 @@ function showToast(message, type = "") {
     }, 300);
   }, 3000);
 }
+
+// Physics simulation functions
+function initializePhysics() {
+  if (!lastBox || !itemMeshes.length) {
+    showToast("Carregue uma cena antes de ativar a gravidade", "error");
+    gravityEnabled = false;
+    toggleGravityBtn.dataset.active = "false";
+    return;
+  }
+
+  // Initialize physics items with velocity
+  physicsItems = itemMeshes.map(mesh => {
+    const itemData = mesh.userData.itemData;
+    return {
+      mesh: mesh,
+      data: itemData,
+      velocity: { x: 0, y: 0, z: 0 },
+      grounded: false
+    };
+  });
+}
+
+function stopPhysics() {
+  physicsItems = [];
+}
+
+function updatePhysics(deltaTime) {
+  if (!gravityEnabled || !physicsItems.length || !lastBox) return;
+
+  const dt = Math.min(deltaTime, 0.033); // Cap at ~30fps for stability
+
+  physicsItems.forEach(physItem => {
+    if (physItem.grounded) return;
+
+    // Apply gravity
+    physItem.velocity.y += GRAVITY * dt;
+
+    // Update position
+    const newY = physItem.mesh.position.y + physItem.velocity.y * dt;
+
+    // Calculate floor position (bottom of box)
+    const floorY = lastBox.position.y - lastBox.height / 2 + physItem.data.height / 2;
+
+    // Check collision with floor
+    if (newY <= floorY) {
+      physItem.mesh.position.y = floorY;
+      physItem.velocity.y = -physItem.velocity.y * DAMPING;
+
+      // Stop if velocity is very small
+      if (Math.abs(physItem.velocity.y) < 1) {
+        physItem.velocity.y = 0;
+        physItem.grounded = true;
+      }
+    } else {
+      // Check collision with other items below
+      let collision = false;
+
+      for (let other of physicsItems) {
+        if (other === physItem || !other.grounded) continue;
+
+        // Simple AABB check for items below
+        if (checkItemBelow(physItem, other)) {
+          const topY = other.mesh.position.y + other.data.height / 2 + physItem.data.height / 2;
+          physItem.mesh.position.y = topY;
+          physItem.velocity.y = -physItem.velocity.y * DAMPING;
+
+          if (Math.abs(physItem.velocity.y) < 1) {
+            physItem.velocity.y = 0;
+            physItem.grounded = true;
+          }
+          collision = true;
+          break;
+        }
+      }
+
+      if (!collision) {
+        physItem.mesh.position.y = newY;
+      }
+    }
+
+    // Update item data position for collision detection
+    physItem.data.position.y = physItem.mesh.position.y;
+  });
+}
+
+function checkItemBelow(falling, below) {
+  // Check if falling item is above and overlapping in X and Z
+  const fallingMinX = falling.mesh.position.x - falling.data.width / 2;
+  const fallingMaxX = falling.mesh.position.x + falling.data.width / 2;
+  const fallingMinZ = falling.mesh.position.z - falling.data.depth / 2;
+  const fallingMaxZ = falling.mesh.position.z + falling.data.depth / 2;
+
+  const belowMinX = below.mesh.position.x - below.data.width / 2;
+  const belowMaxX = below.mesh.position.x + below.data.width / 2;
+  const belowMinZ = below.mesh.position.z - below.data.depth / 2;
+  const belowMaxZ = below.mesh.position.z + below.data.depth / 2;
+
+  const overlapX = fallingMinX < belowMaxX && fallingMaxX > belowMinX;
+  const overlapZ = fallingMinZ < belowMaxZ && fallingMaxZ > belowMinZ;
+
+  const fallingBottom = falling.mesh.position.y - falling.data.height / 2;
+  const belowTop = below.mesh.position.y + below.data.height / 2;
+
+  return overlapX && overlapZ && fallingBottom <= belowTop + 2 && fallingBottom >= belowTop - 2;
+}
+
+// Update animation loop to include physics
+let lastTime = performance.now();
+
+renderer.setAnimationLoop(() => {
+  const currentTime = performance.now();
+  const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
+  lastTime = currentTime;
+
+  controls.update();
+  updateInteractions();
+  updatePhysics(deltaTime);
+  renderer.render(scene, camera);
+});

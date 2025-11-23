@@ -211,6 +211,12 @@ textarea:focus {
   transform: translateY(-1px);
 }
 
+.viewer-btn[data-active="true"] {
+  background: rgba(34, 197, 94, 0.8);
+  border-color: rgba(34, 197, 94, 1);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
+}
+
 .toast-container {
   position: fixed;
   bottom: 24px;
