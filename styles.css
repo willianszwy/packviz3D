@@ -561,3 +561,58 @@ button.primary:hover,
     min-height: 420px;
   }
 }
+
+@media (max-width: 600px) {
+  .app-header {
+    padding: 16px 20px;
+  }
+
+  .app-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .app-layout {
+    padding: 16px;
+    gap: 20px;
+  }
+
+  .viewer-container {
+    min-height: 350px;
+  }
+
+  .viewer-controls {
+    top: 8px;
+    right: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: 100%;
+  }
+
+  .viewer-btn {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+
+  .form-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-bar {
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px;
+  }
+
+  .toast-container {
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    align-items: center;
+  }
+
+  .toast {
+    width: 100%;
+    max-width: none;
+    text-align: center;
+  }
+}
