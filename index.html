@@ -25,9 +25,17 @@
   <main class="app-layout">
     <section class="sidebar">
       <form id="json-form" class="form-card">
-        <label for="json-input">JSON de entrada</label>
-        <textarea id="json-input" rows="12" spellcheck="false"
-          placeholder="Cole aqui o JSON da caixa e itens..."></textarea>
+        <div class="control-group">
+          <label for="json-input">JSON de Entrada</label>
+          <div class="toggle-container">
+            <label class="switch" title="Ative se as coordenadas do JSON forem baseadas no canto (0,0,0) da caixa">
+              <input type="checkbox" id="origin-toggle" checked>
+              <span class="slider"></span>
+            </label>
+            <label for="origin-toggle" class="switch-label">Origem no Canto (0,0,0)</label>
+          </div>
+          <textarea id="json-input" rows="12" spellcheck="false" placeholder="Cole seu JSON aqui..."></textarea>
+        </div>
         <div class="form-actions">
           <button type="submit" class="btn primary">Carregar</button>
           <div class="example-dropdown">

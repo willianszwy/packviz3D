@@ -183,6 +183,13 @@ textarea:focus {
   background: var(--surface-alt);
 }
 
+.toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
 .viewer-controls {
   position: absolute;
   top: 12px;
@@ -216,6 +223,60 @@ textarea:focus {
   border-color: rgba(34, 197, 94, 1);
   box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
 }
+
+/* Switch toggle styling */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--border);
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 4px;
+  bottom: 4px;
+  background: #fff;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked+.slider {
+  background: var(--accent);
+}
+
+input:checked+.slider:before {
+  transform: translateX(20px);
+}
+
+.switch-label {
+  margin-left: 8px;
+  vertical-align: middle;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
 
 .toast-container {
   position: fixed;

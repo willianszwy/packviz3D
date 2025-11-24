@@ -14,6 +14,7 @@ const resetViewBtn = document.getElementById("reset-view");
 const toggleGravityBtn = document.getElementById("toggle-gravity");
 const copyUrlBtn = document.getElementById("copy-url");
 const exportScreenshotBtn = document.getElementById("export-screenshot");
+const originToggle = document.getElementById("origin-toggle");
 const toastContainer = document.getElementById("toast-container");
 const statsPanel = document.getElementById("stats-panel");
 const statsContent = document.getElementById("stats-content");
@@ -169,6 +170,12 @@ copyUrlBtn?.addEventListener("click", () => {
   copyShareableUrl();
 });
 
+originToggle?.addEventListener("change", () => {
+  handleJsonLoad();
+  const isChecked = originToggle.checked;
+  showToast(isChecked ? "📍 Origem: Canto (0,0,0)" : "📍 Origem: Centro da Caixa", "info");
+});
+
 exportScreenshotBtn?.addEventListener("click", () => {
   exportSceneScreenshot();
 });
@@ -284,11 +291,31 @@ function sanitizeVector(value, label) {
 }
 
 function decorateItems(box, items) {
-  return items.map((item, index) => {
+  const useCornerOrigin = originToggle && originToggle.checked;
+
+  // 1. First, map all items to their visual positions
+  const transformedItems = items.map((item) => {
+    if (useCornerOrigin) {
+      return {
+        ...item,
+        position: {
+          x: item.position.x - box.width / 2,
+          y: item.position.y - box.height / 2,
+          z: item.position.z - box.depth / 2
+        }
+      };
+    }
+    return item;
+  });
+
+  // 2. Then decorate them (colors, collisions, etc) using the transformed positions
+  return transformedItems.map((item, index) => {
     const color = palette[index % palette.length];
     const outside = isOutsideBox(box, item);
-    const collisions = detectCollisions(item, items, index);
+    // Pass the FULL list of transformed items to detect collisions correctly
+    const collisions = detectCollisions(item, transformedItems, index);
     const hasCollision = collisions.length > 0;
+
     return { ...item, color, outside, hasCollision, collisions };
   });
 }
@@ -364,6 +391,12 @@ function renderScene(box, items) {
   const dimensions = buildDimensionHelpers(box);
   scene.add(dimensions);
   cleanupCallbacks.push(() => disposeObject(scene, dimensions));
+
+  const originHelper = buildOriginHelper(box);
+  if (originHelper) {
+    scene.add(originHelper);
+    cleanupCallbacks.push(() => disposeObject(scene, originHelper));
+  }
 
   // Reset item meshes array
   itemMeshes = [];
@@ -481,6 +514,40 @@ function buildDimensionHelpers(box) {
   return group;
 }
 
+function buildOriginHelper(box) {
+  if (!originToggle || !originToggle.checked) return null;
+
+  const group = new THREE.Group();
+
+  const axisSize = Math.max(40, Math.min(box.width, box.height, box.depth) * 0.2);
+  const axes = new THREE.AxesHelper(axisSize);
+  // Make axes colors brighter
+  const colors = axes.geometry.attributes.color;
+  // X: Red, Y: Green, Z: Blue - default is fine but maybe boost visibility?
+  // Default is fine.
+
+  group.add(axes);
+
+  const label = createTextSprite("Origem (0,0,0)", {
+    fontSize: 48,
+    background: "rgba(15, 23, 42, 0.9)",
+    color: "#fbbf24",
+    scale: 0.15,
+    padding: 12
+  });
+  label.position.set(axisSize * 0.5, axisSize * 0.5, axisSize * 0.5);
+  group.add(label);
+
+  // Position at the corner (min x, min y, min z)
+  group.position.set(
+    box.position.x - box.width / 2,
+    box.position.y - box.height / 2,
+    box.position.z - box.depth / 2
+  );
+
+  return group;
+}
+
 function createDimensionLine(start, end, label) {
   const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
   const material = new THREE.LineDashedMaterial({ color: 0x93c5fd, dashSize: 8, gapSize: 4, linewidth: 1, transparent: true, opacity: 0.9 });
@@ -515,8 +582,8 @@ function buildItemMesh(item) {
     color: new THREE.Color(item.color),
     roughness: 0.45,
     metalness: 0.05,
-    transparent: item.outside || item.hasCollision,
-    opacity: item.outside || item.hasCollision ? 0.75 : 1,
+    transparent: item.outside,
+    opacity: item.outside ? 0.75 : 1,
     emissive: emissiveColor,
     emissiveIntensity: emissiveIntensity
   });
@@ -679,16 +746,47 @@ function buildExamplePayload(config) {
 }
 
 function createExampleItems(width, depth, height, id) {
+  // Create items that stack nicely from the corner
   const templates = [
-    { ratio: 0.45, pos: { x: -width / 4, y: -height / 4, z: -depth / 4 } },
-    { ratio: 0.35, pos: { x: width / 5, y: -height / 6, z: depth / 5 } },
-    { ratio: 0.25, pos: { x: 0, y: height / 6, z: 0 } }
+    // Item 1: Bottom-left corner
+    {
+      ratio: 0.45,
+      getPos: (w, h, d) => ({ x: w / 2, y: h / 2, z: d / 2 })
+    },
+    // Item 2: Next to Item 1 along X
+    {
+      ratio: 0.35,
+      getPos: (w, h, d, prevW) => ({ x: prevW + w / 2 + 2, y: h / 2, z: d / 2 })
+    },
+    // Item 3: On top of Item 1
+    {
+      ratio: 0.25,
+      getPos: (w, h, d, prevW, prevH) => ({ x: w / 2 + 5, y: prevH + h / 2, z: d / 2 + 5 })
+    },
+    // Item 4: Stacked on Item 2
+    {
+      ratio: 0.20,
+      getPos: (w, h, d, prevW, prevH) => ({ x: prevW + w / 2 + 2, y: h / 2 + prevH * 0.6, z: d / 2 })
+    }
   ];
+
+  let prevWidth = 0;
+  let prevHeight = 0;
 
   return templates.map((template, index) => {
     const w = clampDimension(width * template.ratio);
     const h = clampDimension(height * template.ratio);
     const d = clampDimension(depth * template.ratio);
+
+    // Calculate position based on the template logic
+    // We pass previous dimensions to help stack them
+    const pos = template.getPos(w, h, d, prevWidth, prevHeight);
+
+    if (index === 0) {
+      prevWidth = w;
+      prevHeight = h;
+    }
+
     return {
       id: `item-${id}-${index + 1}`,
       name: `Pacote ${String.fromCharCode(65 + index)}`,
@@ -697,9 +795,9 @@ function createExampleItems(width, depth, height, id) {
       depth: d,
       weight: Number((Math.max(w * h * d / 5000, 1)).toFixed(1)),
       position: {
-        x: Number(template.pos.x.toFixed(1)),
-        y: Number(template.pos.y.toFixed(1)),
-        z: Number(template.pos.z.toFixed(1))
+        x: Number(pos.x.toFixed(1)),
+        y: Number(pos.y.toFixed(1)),
+        z: Number(pos.z.toFixed(1))
       }
     };
   });
