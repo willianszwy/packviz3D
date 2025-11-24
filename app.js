@@ -1359,6 +1359,21 @@ function checkItemBelow(falling, below) {
   return overlapX && overlapZ && fallingBottom <= belowTop + 2 && fallingBottom >= belowTop - 2;
 }
 
+// Collapsible instructions panel
+const instructionsHeader = document.getElementById("instructions-header");
+const instructionsPanel = instructionsHeader?.closest(".collapsible");
+
+if (instructionsHeader && instructionsPanel) {
+  // Auto-collapse on mobile
+  if (window.innerWidth <= 600) {
+    instructionsPanel.classList.add("collapsed");
+  }
+
+  instructionsHeader.addEventListener("click", () => {
+    instructionsPanel.classList.toggle("collapsed");
+  });
+}
+
 // Update animation loop to include physics
 let lastTime = performance.now();
 

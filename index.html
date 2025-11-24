@@ -23,6 +23,18 @@
     <p>Visualize, simule e otimize seu empacotamento em 3D</p>
   </header>
   <main class="app-layout">
+    <section class="viewer-area">
+      <div id="summary-bar" class="summary-bar empty"></div>
+      <section class="viewer">
+        <div class="viewer-controls">
+          <button type="button" id="reset-view" class="viewer-btn">↻ Resetar</button>
+          <button type="button" id="toggle-gravity" class="viewer-btn" data-active="false">🌍 Gravidade</button>
+          <button type="button" id="copy-url" class="viewer-btn">🔗 Copiar URL</button>
+          <button type="button" id="export-screenshot" class="viewer-btn">📷 Screenshot</button>
+        </div>
+        <div id="viewer-container" class="viewer-container"></div>
+      </section>
+    </section>
     <section class="sidebar">
       <form id="json-form" class="form-card">
         <div class="control-group">
@@ -57,56 +69,48 @@
           Nenhum item carregado.
         </div>
       </section>
-      <section class="instructions panel">
-        <h2>📖 Guia de Uso</h2>
+      <section class="instructions panel collapsible">
+        <h2 class="collapsible-header" id="instructions-header">
+          <span>📖 Guia de Uso</span>
+          <span class="collapse-icon">▼</span>
+        </h2>
+        <div class="collapsible-content" id="instructions-content">
+          <h3>🎮 Controles da Câmera</h3>
+          <ul>
+            <li><strong>Orbitar:</strong> Arraste com botão esquerdo</li>
+            <li><strong>Zoom:</strong> Role o mouse (scroll)</li>
+            <li><strong>Pan:</strong> Arraste com botão direito</li>
+            <li><strong>Resetar:</strong> Botão "↻ Resetar"</li>
+          </ul>
 
-        <h3>🎮 Controles da Câmera</h3>
-        <ul>
-          <li><strong>Orbitar:</strong> Arraste com botão esquerdo</li>
-          <li><strong>Zoom:</strong> Role o mouse (scroll)</li>
-          <li><strong>Pan:</strong> Arraste com botão direito</li>
-          <li><strong>Resetar:</strong> Botão "↻ Resetar"</li>
-        </ul>
+          <h3>🖱️ Interação com Itens</h3>
+          <ul>
+            <li><strong>Hover:</strong> Passe o mouse para destacar</li>
+            <li><strong>Click:</strong> Clique para selecionar/deselecionar</li>
+            <li><strong>Lista:</strong> Sincroniza com a visualização 3D</li>
+          </ul>
 
-        <h3>🖱️ Interação com Itens</h3>
-        <ul>
-          <li><strong>Hover:</strong> Passe o mouse para destacar</li>
-          <li><strong>Click:</strong> Clique para selecionar/deselecionar</li>
-          <li><strong>Lista:</strong> Sincroniza com a visualização 3D</li>
-        </ul>
+          <h3>🌍 Física e Simulação</h3>
+          <ul>
+            <li><strong>Gravidade:</strong> Ative para simular queda</li>
+            <li><strong>Empilhamento:</strong> Itens pousam uns sobre outros</li>
+            <li><strong>Bounce:</strong> Efeito de ricochete realista</li>
+          </ul>
 
-        <h3>🌍 Física e Simulação</h3>
-        <ul>
-          <li><strong>Gravidade:</strong> Ative para simular queda</li>
-          <li><strong>Empilhamento:</strong> Itens pousam uns sobre outros</li>
-          <li><strong>Bounce:</strong> Efeito de ricochete realista</li>
-        </ul>
+          <h3>📤 Exportar e Compartilhar</h3>
+          <ul>
+            <li><strong>🔗 Copiar URL:</strong> Compartilhe a visualização</li>
+            <li><strong>📷 Screenshot:</strong> Salve imagem em alta resolução</li>
+          </ul>
 
-        <h3>📤 Exportar e Compartilhar</h3>
-        <ul>
-          <li><strong>🔗 Copiar URL:</strong> Compartilhe a visualização</li>
-          <li><strong>📷 Screenshot:</strong> Salve imagem em alta resolução</li>
-        </ul>
-
-        <h3>⚠️ Indicadores Visuais</h3>
-        <ul>
-          <li><strong>Vermelho:</strong> Item fora da caixa</li>
-          <li><strong>Laranja:</strong> Colisão detectada</li>
-          <li><strong>Transparente:</strong> Itens com problemas (fora ou colisão)</li>
-          <li><strong>Verde (botão):</strong> Gravidade ativa</li>
-        </ul>
-      </section>
-    </section>
-    <section class="viewer-area">
-      <div id="summary-bar" class="summary-bar empty"></div>
-      <section class="viewer">
-        <div class="viewer-controls">
-          <button type="button" id="reset-view" class="viewer-btn">↻ Resetar</button>
-          <button type="button" id="toggle-gravity" class="viewer-btn" data-active="false">🌍 Gravidade</button>
-          <button type="button" id="copy-url" class="viewer-btn">🔗 Copiar URL</button>
-          <button type="button" id="export-screenshot" class="viewer-btn">📷 Screenshot</button>
+          <h3>⚠️ Indicadores Visuais</h3>
+          <ul>
+            <li><strong>Vermelho:</strong> Item fora da caixa</li>
+            <li><strong>Laranja:</strong> Colisão detectada</li>
+            <li><strong>Transparente:</strong> Itens com problemas (fora ou colisão)</li>
+            <li><strong>Verde (botão):</strong> Gravidade ativa</li>
+          </ul>
         </div>
-        <div id="viewer-container" class="viewer-container"></div>
       </section>
     </section>
   </main>
