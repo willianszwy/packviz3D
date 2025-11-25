@@ -4,6 +4,12 @@
 
 O **PackViz 3D** é uma ferramenta web interativa desenvolvida para visualizar, simular e otimizar o posicionamento de cargas e itens dentro de caixas ou contêineres. Utilizando tecnologias web modernas e renderização 3D de alta performance, ele oferece uma interface intuitiva para profissionais de logística, desenvolvedores e entusiastas.
 
+## 🌐 Demo Online
+
+**[🚀 Acesse o PackViz 3D](https://willianszwy.github.io/packviz3D/)**
+
+Experimente a aplicação diretamente no seu navegador, sem necessidade de instalação!
+
 ![PackViz 3D Screenshot](https://via.placeholder.com/800x450?text=PackViz+3D+Preview)
 
 ## 🚀 Funcionalidades Principais
